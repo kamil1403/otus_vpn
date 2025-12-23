@@ -1,0 +1,82 @@
+---
+- name: Configure VPN Server
+  hosts: vpn_servers
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - openvpn
+          - iperf3
+        state: present
+        update_cache: yes
+
+    - name: Generate static key
+      command: openvpn --genkey --secret /etc/openvpn/static.key
+      args:
+        creates: /etc/openvpn/static.key
+
+    - name: Fetch static key to host
+      fetch:
+        src: /etc/openvpn/static.key
+        dest: ./static.key
+        flat: yes
+
+    - name: Configure Server (TAP)
+      copy:
+        dest: /etc/openvpn/server.conf
+        content: |
+          dev tun
+          ifconfig 10.10.10.1 255.255.255.0
+          topology subnet
+          secret /etc/openvpn/static.key
+          comp-lzo
+          status /var/log/openvpn-status.log
+          log /var/log/openvpn.log
+          verb 3
+
+    - name: Start OpenVPN Server
+      systemd:
+        name: openvpn@server
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+- name: Configure VPN Client
+  hosts: vpn_clients
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - openvpn
+          - iperf3
+        state: present
+        update_cache: yes
+
+    - name: Copy static key from host
+      copy:
+        src: ./static.key
+        dest: /etc/openvpn/static.key
+        mode: '0600'
+
+    - name: Configure Client (TAP)
+      copy:
+        dest: /etc/openvpn/client.conf
+        content: |
+          dev tun
+          remote 192.168.56.10
+          ifconfig 10.10.10.2 255.255.255.0
+          topology subnet
+          secret /etc/openvpn/static.key
+          comp-lzo
+          status /var/log/openvpn-status.log
+          log /var/log/openvpn.log
+          verb 3
+
+    - name: Start OpenVPN Client
+      systemd:
+        name: openvpn@client
+        state: started
+        enabled: yes
+        daemon_reload: yes
