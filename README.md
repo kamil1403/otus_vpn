@@ -4,9 +4,6 @@
       <td style="border: none; background: none;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ansible_Logo.png/480px-Ansible_Logo.png" alt="Ansible Logo" width="100">
       </td>
-      <td style="border: none; background: none;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Openvpn-logo.png/512px-Openvpn-logo.png" alt="OpenVPN Logo" width="150">
-      </td>
     </tr>
   </table>
 </div>
